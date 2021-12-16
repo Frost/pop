@@ -322,6 +322,19 @@ sudo sbuild-update \
             }
         }
 
+        // Transition master pockets to main pockets, if main pocket does not exist
+        {
+            for suite in Suite::ALL.iter() {
+                let main_key = (Pocket::new("main"), suite.clone());
+                if ! pockets.contains_key(&main_key) {
+                    let master_key = (Pocket::new("master"), suite.clone());
+                    if let Some(entry) = pockets.remove(&master_key) {
+                        pockets.insert(main_key, entry);
+                    }
+                }
+            }
+        }
+
         #[derive(Default)]
         struct Build {
             branches: BTreeSet<GitBranch>,
@@ -954,7 +967,7 @@ sbuild \
                     pool_rebuilt = true;
                 }
 
-                if pocket.id() == "master" && launchpad {
+                if pocket.id() == "main" && launchpad {
                     for (changes_name, changes_path) in package.changes.iter() {
                         let dput = match repo_info.dput {
                             Some(some) => some,
